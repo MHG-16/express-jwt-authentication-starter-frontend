@@ -7,18 +7,21 @@ export class AuthService {
     constructor() {}
           
     setLocalStorage(responseObj) {
-        const expires = moment().add(responseObj.expiresIn);
-        localStorage.setItem('token', responseObj.token);
-        localStorage.setItem('expires', JSON.stringify(expires.valueOf()));
+
+        // Adds the expiration time defined on the JWT to the current moment
+        const expiresAt = moment().add(Number.parseInt(responseObj.expiresIn), 'days');
+
+        localStorage.setItem('id_token', responseObj.token);
+        localStorage.setItem("expires_at", JSON.stringify(expiresAt.valueOf()) );
     }          
 
     logout() {
-        localStorage.removeItem('token');
-        localStorage.removeItem('expires');
+        localStorage.removeItem("id_token");
+        localStorage.removeItem("expires_at");
     }
 
-    isLoggedIn() {
-        return moment().isBefore(this.getExpiration());
+    public isLoggedIn() {
+        return moment().isBefore(this.getExpiration(), "second");
     }
 
     isLoggedOut() {
@@ -26,9 +29,12 @@ export class AuthService {
     }
 
     getExpiration() {
-        const expiration = localStorage.getItem('expires');
-        const expiresAt = JSON.stringify(expiration);
-
-        return moment(expiresAt);
+        const expiration = localStorage.getItem("expires_at");
+        if (expiration) {
+            const expiresAt = JSON.parse(expiration);
+            return moment(expiresAt);
+        } else {
+            return moment();
+        }
     }    
 }
